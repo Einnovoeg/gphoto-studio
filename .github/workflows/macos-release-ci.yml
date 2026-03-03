@@ -1,0 +1,42 @@
+name: macOS Release CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+jobs:
+  build-release:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Release Artifacts
+        run: |
+          ./scripts/build-release-artifacts.sh
+
+      - name: Verify Release Artifacts
+        run: |
+          ./scripts/verify-release-artifacts.sh
+
+      - name: Collect Artifacts
+        run: |
+          rm -rf dist/ci-artifacts
+          mkdir -p dist/ci-artifacts
+          cp -R "dist/gPhoto Studio.app" "dist/ci-artifacts/"
+          cp "dist/gPhoto Studio.zip" "dist/ci-artifacts/"
+          cp "dist/gPhoto Studio.dmg" "dist/ci-artifacts/"
+          cp "dist/gPhoto Studio-SHA256.txt" "dist/ci-artifacts/"
+          cp "dist/gPhoto Studio-release-manifest.txt" "dist/ci-artifacts/"
+
+      - name: Upload Artifact Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: gphoto-studio-macos-release
+          path: dist/ci-artifacts
+          if-no-files-found: error
+          retention-days: 14

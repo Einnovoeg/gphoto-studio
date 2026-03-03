@@ -1,0 +1,19 @@
+# macOS Finder metadata
+.DS_Store
+
+# Swift Package Manager build artifacts
+.build/
+
+# Xcode user state and temporary files
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcuserdatad/
+*.xcuserstate
+
+# Packaged application artifacts
+dist/
+
+# Temporary editor/OS files
+*.swp
+*.swo
+*~
