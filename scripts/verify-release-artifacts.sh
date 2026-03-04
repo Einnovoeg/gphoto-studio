@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Validate release artifacts produced by the packaging pipeline.
+# Checks include bundle metadata, archive contents, checksum entries, and DMG format.
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-gPhoto Studio}"
 EXECUTABLE_NAME="${EXECUTABLE_NAME:-GPhotoStudio}"
@@ -46,6 +49,7 @@ actual_display_name="$(plist_value CFBundleDisplayName)"
 actual_executable="$(plist_value CFBundleExecutable)"
 actual_bundle_id="$(plist_value CFBundleIdentifier)"
 
+# Ensure runtime metadata matches expected release naming/version context.
 if [[ "${actual_display_name}" != "${APP_NAME}" ]]; then
   echo "CFBundleDisplayName mismatch: expected '${APP_NAME}', got '${actual_display_name}'" >&2
   exit 1
@@ -61,6 +65,7 @@ if [[ "${actual_bundle_id}" != "${BUNDLE_ID}" ]]; then
   exit 1
 fi
 
+# Confirm the ZIP contains the executable (and icon when enabled).
 if ! unzip -l "${ZIP_PATH}" | grep -F "${APP_NAME}.app/Contents/MacOS/${EXECUTABLE_NAME}" >/dev/null; then
   echo "ZIP archive missing executable entry." >&2
   exit 1
@@ -84,6 +89,7 @@ if [[ "${CHECK_ICON}" == "1" ]]; then
   fi
 fi
 
+# Ensure checksum and manifest files include expected entries.
 zip_basename="$(basename "${ZIP_PATH}")"
 if ! grep -F "${zip_basename}" "${CHECKSUMS_PATH}" >/dev/null; then
   echo "Checksum file missing ZIP hash entry." >&2

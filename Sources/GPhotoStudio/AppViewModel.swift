@@ -64,6 +64,13 @@ final class AppViewModel: ObservableObject {
         self.outputDirectory = "~/Pictures/gPhoto Studio"
     }
 
+    deinit {
+        // Ensure background tasks do not outlive the view model.
+        livePreviewTask?.cancel()
+        timelapseTask?.cancel()
+        tetherTask?.cancel()
+    }
+
     /// The selected camera model/port pair or `nil` when no device is active.
     var selectedCamera: CameraDevice? {
         cameras.first(where: { $0.id == selectedCameraID })
@@ -293,6 +300,7 @@ final class AppViewModel: ObservableObject {
         livePreviewTask?.cancel()
         livePreviewTask = nil
         liveViewEnabled = false
+        livePreviewImage = nil
     }
 
     /// Toggles timelapse queue.

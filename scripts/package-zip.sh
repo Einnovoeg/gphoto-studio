@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Package the built `.app` bundle into a ZIP archive for distribution.
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-gPhoto Studio}"
 DIST_DIR="${ROOT_DIR}/dist"
@@ -12,6 +14,7 @@ if [[ ! -d "${APP_DIR}" ]]; then
   "${ROOT_DIR}/scripts/build-macos-app.sh"
 fi
 
+# `COPYFILE_DISABLE=1` avoids macOS metadata sidecar files in the archive.
 rm -f "${ZIP_PATH}"
 (
   cd "${DIST_DIR}"

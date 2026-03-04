@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Generate default icon art and convert it into a full `.iconset` + `.icns`.
+# This is optional and only needed when you want project-provided branding assets.
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RESOURCES_DIR="${ROOT_DIR}/resources"
 PNG_PATH="${PNG_PATH:-${RESOURCES_DIR}/gphoto-studio-1024.png}"
@@ -9,6 +12,7 @@ ICONSET_DIR="${ICONSET_DIR:-${RESOURCES_DIR}/gphoto-studio.iconset}"
 
 mkdir -p "${RESOURCES_DIR}"
 
+# Draw the 1024x1024 source icon using Pillow.
 python3 - <<'PY' "${PNG_PATH}"
 from PIL import Image, ImageDraw, ImageFilter
 import math
@@ -97,9 +101,11 @@ img.save(out_path)
 print(f"Wrote {out_path}")
 PY
 
+# Prepare iconset directory expected by `iconutil`.
 rm -rf "${ICONSET_DIR}"
 mkdir -p "${ICONSET_DIR}"
 
+# Downscale into all required macOS icon dimensions.
 sips -z 16 16     "${PNG_PATH}" --out "${ICONSET_DIR}/icon_16x16.png" >/dev/null
 sips -z 32 32     "${PNG_PATH}" --out "${ICONSET_DIR}/icon_16x16@2x.png" >/dev/null
 sips -z 32 32     "${PNG_PATH}" --out "${ICONSET_DIR}/icon_32x32.png" >/dev/null
@@ -111,6 +117,20 @@ sips -z 512 512   "${PNG_PATH}" --out "${ICONSET_DIR}/icon_256x256@2x.png" >/dev
 sips -z 512 512   "${PNG_PATH}" --out "${ICONSET_DIR}/icon_512x512.png" >/dev/null
 cp "${PNG_PATH}" "${ICONSET_DIR}/icon_512x512@2x.png"
 
-iconutil -c icns "${ICONSET_DIR}" -o "${ICNS_PATH}"
+# Compile iconset into a single .icns bundle resource.
+TMP_ICNS="${ICNS_PATH}.tmp"
+rm -f "${TMP_ICNS}"
 
-echo "Wrote ${ICNS_PATH}"
+if iconutil -c icns "${ICONSET_DIR}" -o "${TMP_ICNS}" 2>/dev/null; then
+  mv "${TMP_ICNS}" "${ICNS_PATH}"
+  echo "Wrote ${ICNS_PATH}"
+elif [[ -f "${ICNS_PATH}" ]]; then
+  # Some environments can fail iconutil conversion despite valid iconset files.
+  # Keep the previously generated icon so release builds can proceed.
+  echo "Warning: iconutil failed; keeping existing ${ICNS_PATH}" >&2
+  rm -f "${TMP_ICNS}"
+else
+  echo "Error: iconutil failed and no existing ${ICNS_PATH} is available." >&2
+  rm -f "${TMP_ICNS}"
+  exit 1
+fi

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Build and package all release deliverables in one reproducible pipeline.
+# Outputs: .app, .zip, optional .dmg, checksums, and a metadata manifest.
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-gPhoto Studio}"
 EXECUTABLE_NAME="${EXECUTABLE_NAME:-GPhotoStudio}"
@@ -21,10 +24,12 @@ MANIFEST_PATH="${DIST_DIR}/${APP_NAME}-release-manifest.txt"
 mkdir -p "${DIST_DIR}"
 
 if [[ "${GENERATE_ICON}" == "1" ]]; then
+  # Regenerate icon assets so releases always contain consistent branding files.
   echo "[1/6] Generating icon assets"
   "${ROOT_DIR}/scripts/generate-icon-assets.sh"
 fi
 
+# Build the app bundle first; packaging steps depend on this output.
 echo "[2/6] Building app bundle"
 APP_NAME="${APP_NAME}" \
 EXECUTABLE_NAME="${EXECUTABLE_NAME}" \
@@ -33,16 +38,19 @@ VERSION="${VERSION}" \
 BUILD_CONFIG="${BUILD_CONFIG}" \
 "${ROOT_DIR}/scripts/build-macos-app.sh"
 
+# ZIP is the most portable distribution artifact.
 echo "[3/6] Packaging ZIP"
 APP_NAME="${APP_NAME}" "${ROOT_DIR}/scripts/package-zip.sh"
 
 if [[ "${BUILD_DMG}" == "1" ]]; then
+  # DMG is optional because some CI/sandbox environments restrict hdiutil behavior.
   echo "[4/6] Packaging DMG"
   APP_NAME="${APP_NAME}" "${ROOT_DIR}/scripts/package-dmg.sh"
 else
   echo "[4/6] Skipping DMG (BUILD_DMG=${BUILD_DMG})"
 fi
 
+# Emit cryptographic hashes and a machine-readable build manifest.
 echo "[5/6] Writing checksums and manifest"
 rm -f "${CHECKSUMS_PATH}" "${MANIFEST_PATH}"
 
@@ -81,6 +89,7 @@ plist_value() {
 } > "${MANIFEST_PATH}"
 
 if [[ "${RUN_VERIFY}" == "1" ]]; then
+  # Sanity-check artifact names, metadata, and checksums before declaring success.
   echo "[6/6] Verifying artifacts"
   APP_NAME="${APP_NAME}" \
   EXECUTABLE_NAME="${EXECUTABLE_NAME}" \

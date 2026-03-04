@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Build a drag-and-drop DMG containing the app bundle and Applications shortcut.
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-gPhoto Studio}"
 DIST_DIR="${ROOT_DIR}/dist"
@@ -13,11 +15,13 @@ if [[ ! -d "${APP_DIR}" ]]; then
   "${ROOT_DIR}/scripts/build-macos-app.sh"
 fi
 
+# Stage files into a temporary folder that becomes the DMG volume content.
 rm -rf "${STAGING_DIR}" "${DMG_PATH}"
 mkdir -p "${STAGING_DIR}"
 cp -R "${APP_DIR}" "${STAGING_DIR}/"
 ln -s /Applications "${STAGING_DIR}/Applications"
 
+# Use UDZO (compressed read-only) for a compact installer image.
 hdiutil create \
   -volname "${APP_NAME}" \
   -srcfolder "${STAGING_DIR}" \
