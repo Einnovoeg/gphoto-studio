@@ -32,6 +32,48 @@ final class GPhoto2ServiceParserTests: XCTestCase {
         XCTAssertEqual(GPhoto2Service.parseAutoDetectOutput(output), [])
     }
 
+    func testParseAutoDetectOutputReturnsEmptyWhenNoDevicesFollowSeparator() {
+        let output = """
+        Model                          Port
+        ----------------------------------------------------------
+        """
+
+        XCTAssertEqual(GPhoto2Service.parseAutoDetectOutput(output), [])
+    }
+
+    func testParseConfigOutputParsesLabelCurrentAndChoices() {
+        let output = """
+        Label: ISO Speed
+        Type: RADIO
+        Current: 200
+        Choice: 0 100
+        Choice: 1 200
+        Choice: 2 400
+        END
+        """
+
+        let setting = GPhoto2Service.parseConfigOutput(key: "/main/imgsettings/iso", output: output)
+
+        XCTAssertEqual(setting.key, "/main/imgsettings/iso")
+        XCTAssertEqual(setting.label, "ISO Speed")
+        XCTAssertEqual(setting.current, "200")
+        XCTAssertEqual(setting.choices, ["100", "200", "400"])
+    }
+
+    func testParseConfigOutputFallsBackToKeyWhenLabelMissing() {
+        let output = """
+        Type: TEXT
+        Current: Apple iPhone
+        END
+        """
+
+        let setting = GPhoto2Service.parseConfigOutput(key: "/main/status/cameramodel", output: output)
+
+        XCTAssertEqual(setting.label, "/main/status/cameramodel")
+        XCTAssertEqual(setting.current, "Apple iPhone")
+        XCTAssertEqual(setting.choices, [])
+    }
+
     func testParseDownloadedPathsParsesAndDeduplicatesSavedFiles() {
         // Tether mode can emit mixed logs with repeated "Saving file as ..." lines.
         let output = """

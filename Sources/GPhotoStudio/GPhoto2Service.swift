@@ -79,35 +79,7 @@ actor GPhoto2Service {
     /// Reads metadata for one specific camera setting key.
     func getConfig(key: String, port: String?) async throws -> CameraSetting {
         let result = try await run(withPort(["--get-config", key], port: port), timeout: 30)
-        let lines = result.stdoutString.split(whereSeparator: \.isNewline).map(String.init)
-
-        var label = key
-        var current = ""
-        var choices: [String] = []
-
-        for line in lines {
-            if line.hasPrefix("Label:") {
-                label = line.replacingOccurrences(of: "Label:", with: "")
-                    .trimmingCharacters(in: .whitespaces)
-            } else if line.hasPrefix("Current:") {
-                current = line.replacingOccurrences(of: "Current:", with: "")
-                    .trimmingCharacters(in: .whitespaces)
-            } else if line.hasPrefix("Choice:") {
-                let payload = line.replacingOccurrences(of: "Choice:", with: "")
-                    .trimmingCharacters(in: .whitespaces)
-
-                if let index = payload.firstIndex(where: { $0.isWhitespace }) {
-                    let choice = payload[index...].trimmingCharacters(in: .whitespaces)
-                    if !choice.isEmpty {
-                        choices.append(choice)
-                    }
-                } else if !payload.isEmpty {
-                    choices.append(payload)
-                }
-            }
-        }
-
-        return CameraSetting(key: key, label: label, current: current, choices: choices)
+        return Self.parseConfigOutput(key: key, output: result.stdoutString)
     }
 
     /// Writes one camera setting value.
@@ -261,8 +233,13 @@ actor GPhoto2Service {
             return []
         }
 
+        let firstDeviceIndex = separatorIndex + 1
+        guard firstDeviceIndex < lines.count else {
+            return []
+        }
+
         var devices: [CameraDevice] = []
-        for line in lines[(separatorIndex + 1)...] {
+        for line in lines[firstDeviceIndex...] {
             let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmed.isEmpty {
                 continue
@@ -281,6 +258,39 @@ actor GPhoto2Service {
         }
 
         return devices
+    }
+
+    /// Parses one `gphoto2 --get-config <key>` response block.
+    static func parseConfigOutput(key: String, output: String) -> CameraSetting {
+        let lines = output.split(whereSeparator: \.isNewline).map(String.init)
+
+        var label = key
+        var current = ""
+        var choices: [String] = []
+
+        for line in lines {
+            if line.hasPrefix("Label:") {
+                label = line.replacingOccurrences(of: "Label:", with: "")
+                    .trimmingCharacters(in: .whitespaces)
+            } else if line.hasPrefix("Current:") {
+                current = line.replacingOccurrences(of: "Current:", with: "")
+                    .trimmingCharacters(in: .whitespaces)
+            } else if line.hasPrefix("Choice:") {
+                let payload = line.replacingOccurrences(of: "Choice:", with: "")
+                    .trimmingCharacters(in: .whitespaces)
+
+                if let index = payload.firstIndex(where: { $0.isWhitespace }) {
+                    let choice = payload[index...].trimmingCharacters(in: .whitespaces)
+                    if !choice.isEmpty {
+                        choices.append(choice)
+                    }
+                } else if !payload.isEmpty {
+                    choices.append(payload)
+                }
+            }
+        }
+
+        return CameraSetting(key: key, label: label, current: current, choices: choices)
     }
 
     /// Extracts unique local download paths from gphoto2 output lines such as:
