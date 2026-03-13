@@ -8,7 +8,12 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-gPhoto Studio}"
 EXECUTABLE_NAME="${EXECUTABLE_NAME:-GPhotoStudio}"
 BUNDLE_ID="${BUNDLE_ID:-org.gphoto.gphotostudio}"
-VERSION="${VERSION:-0.1.0}"
+VERSION_FILE="${ROOT_DIR}/VERSION"
+DEFAULT_VERSION="0.1.0"
+if [[ -f "${VERSION_FILE}" ]]; then
+  DEFAULT_VERSION="$(tr -d '[:space:]' < "${VERSION_FILE}")"
+fi
+VERSION="${VERSION:-${DEFAULT_VERSION}}"
 BUILD_CONFIG="${BUILD_CONFIG:-release}"
 ADHOC_SIGN="${ADHOC_SIGN:-1}"
 SIGN_IDENTITY="${SIGN_IDENTITY:-}"

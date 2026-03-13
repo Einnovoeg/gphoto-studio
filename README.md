@@ -2,6 +2,8 @@
 
 gPhoto Studio is a native macOS desktop application for controlling cameras through `gphoto2`, with workflow ideas inspired by `digiCamControl`.
 
+Current stable version: `1.0.0`
+
 ## What It Does
 
 gPhoto Studio provides a macOS GUI for common tethered photography tasks:
@@ -70,6 +72,13 @@ Outputs:
 - `dist/gPhoto Studio.dmg`
 - `dist/gPhoto Studio-SHA256.txt`
 - `dist/gPhoto Studio-release-manifest.txt`
+
+## Release Versioning
+
+- The canonical project version is stored in [`VERSION`](VERSION).
+- Releases are tagged as `v<version>`.
+- Release notes are tracked in [`CHANGELOG.md`](CHANGELOG.md).
+- GitHub releases can be published with [`scripts/publish-github-release.sh`](scripts/publish-github-release.sh).
 
 ## Testing and Verification
 

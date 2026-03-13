@@ -8,6 +8,12 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-gPhoto Studio}"
 EXECUTABLE_NAME="${EXECUTABLE_NAME:-GPhotoStudio}"
 BUNDLE_ID="${BUNDLE_ID:-org.gphoto.gphotostudio}"
+VERSION_FILE="${ROOT_DIR}/VERSION"
+DEFAULT_VERSION=""
+if [[ -f "${VERSION_FILE}" ]]; then
+  DEFAULT_VERSION="$(tr -d '[:space:]' < "${VERSION_FILE}")"
+fi
+VERSION="${VERSION:-${DEFAULT_VERSION}}"
 DIST_DIR="${DIST_DIR:-${ROOT_DIR}/dist}"
 REQUIRE_DMG="${REQUIRE_DMG:-1}"
 CHECK_ICON="${CHECK_ICON:-1}"
@@ -48,6 +54,8 @@ require_file "${INFO_PLIST}"
 actual_display_name="$(plist_value CFBundleDisplayName)"
 actual_executable="$(plist_value CFBundleExecutable)"
 actual_bundle_id="$(plist_value CFBundleIdentifier)"
+actual_short_version="$(plist_value CFBundleShortVersionString)"
+actual_bundle_version="$(plist_value CFBundleVersion)"
 
 # Ensure runtime metadata matches expected release naming/version context.
 if [[ "${actual_display_name}" != "${APP_NAME}" ]]; then
@@ -62,6 +70,16 @@ fi
 
 if [[ "${actual_bundle_id}" != "${BUNDLE_ID}" ]]; then
   echo "CFBundleIdentifier mismatch: expected '${BUNDLE_ID}', got '${actual_bundle_id}'" >&2
+  exit 1
+fi
+
+if [[ -n "${VERSION}" && "${actual_short_version}" != "${VERSION}" ]]; then
+  echo "CFBundleShortVersionString mismatch: expected '${VERSION}', got '${actual_short_version}'" >&2
+  exit 1
+fi
+
+if [[ -n "${VERSION}" && "${actual_bundle_version}" != "${VERSION}" ]]; then
+  echo "CFBundleVersion mismatch: expected '${VERSION}', got '${actual_bundle_version}'" >&2
   exit 1
 fi
 
@@ -116,6 +134,11 @@ fi
 
 if ! grep -F "cfbundle_display_name=${APP_NAME}" "${MANIFEST_PATH}" >/dev/null; then
   echo "Manifest missing cfbundle_display_name entry." >&2
+  exit 1
+fi
+
+if [[ -n "${VERSION}" ]] && ! grep -F "version=${VERSION}" "${MANIFEST_PATH}" >/dev/null; then
+  echo "Manifest missing expected version entry." >&2
   exit 1
 fi
 
