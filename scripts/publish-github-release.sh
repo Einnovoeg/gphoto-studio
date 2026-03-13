@@ -57,11 +57,8 @@ MANIFEST_PATH="${ROOT_DIR}/dist/gPhoto Studio-release-manifest.txt"
 if gh release view "${TAG}" >/dev/null 2>&1; then
   gh release upload "${TAG}" "${ZIP_PATH}" "${DMG_PATH}" "${CHECKSUMS_PATH}" "${MANIFEST_PATH}" --clobber
 else
-  gh release create "${TAG}" \
-    "${ZIP_PATH}" \
-    "${DMG_PATH}" \
-    "${CHECKSUMS_PATH}" \
-    "${MANIFEST_PATH}" \
-    --title "${TITLE}" \
-    --notes-file "${NOTES_FILE}"
+  gh release create "${TAG}" --title "${TITLE}" --notes-file "${NOTES_FILE}"
+  # GitHub's uploads endpoint can lag slightly behind release creation.
+  sleep 2
+  gh release upload "${TAG}" "${ZIP_PATH}" "${DMG_PATH}" "${CHECKSUMS_PATH}" "${MANIFEST_PATH}"
 fi
