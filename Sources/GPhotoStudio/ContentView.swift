@@ -28,12 +28,14 @@ struct ContentView: View {
         }
     }
 
+    // MARK: Sidebar
+
     private var sidebar: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 appHeader
 
-                GroupBox("Camera") {
+                GroupBox {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Button("Refresh Cameras") {
@@ -65,9 +67,11 @@ struct ContentView: View {
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                } label: {
+                    panelLabel("Camera", systemImage: "camera")
                 }
 
-                GroupBox("Capture") {
+                GroupBox {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             TextField("Output folder", text: $viewModel.outputDirectory)
@@ -104,9 +108,11 @@ struct ContentView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                } label: {
+                    panelLabel("Capture", systemImage: "camera.aperture")
                 }
 
-                GroupBox("Preset (digiCamControl style)") {
+                GroupBox {
                     VStack(alignment: .leading, spacing: 8) {
                         TextField("ISO (e.g. 100)", text: $viewModel.preset.iso)
                             .textFieldStyle(.roundedBorder)
@@ -121,9 +127,11 @@ struct ContentView: View {
                         .disabled(!viewModel.hasSelectedCamera)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                } label: {
+                    panelLabel("Preset", systemImage: "dial.low")
                 }
 
-                GroupBox("Timelapse") {
+                GroupBox {
                     VStack(alignment: .leading, spacing: 8) {
                         TextField("Interval seconds", text: $viewModel.timelapseIntervalSeconds)
                             .textFieldStyle(.roundedBorder)
@@ -136,9 +144,11 @@ struct ContentView: View {
                         .disabled(!viewModel.hasSelectedCamera)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                } label: {
+                    panelLabel("Timelapse", systemImage: "clock.arrow.circlepath")
                 }
 
-                GroupBox("Tethered Watch") {
+                GroupBox {
                     VStack(alignment: .leading, spacing: 8) {
                         TextField("Event wait seconds", text: $viewModel.tetherIntervalSeconds)
                             .textFieldStyle(.roundedBorder)
@@ -152,6 +162,8 @@ struct ContentView: View {
                         .disabled(!viewModel.hasSelectedCamera)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                } label: {
+                    panelLabel("Tethered Watch", systemImage: "cable.connector")
                 }
 
                 Spacer(minLength: 0)
@@ -159,9 +171,13 @@ struct ContentView: View {
         }
     }
 
+    // MARK: Main Panel
+
     private var mainPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            GroupBox("Live Preview") {
+            overviewStrip
+
+            GroupBox {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.black.opacity(0.87))
@@ -187,9 +203,11 @@ struct ContentView: View {
                         .clipShape(Capsule())
                         .padding(10)
                 }
+            } label: {
+                panelLabel("Live Preview", systemImage: "viewfinder")
             }
 
-            GroupBox("Camera Settings") {
+            GroupBox {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Button("Load Common") {
@@ -230,9 +248,11 @@ struct ContentView: View {
                     }
                     .frame(minHeight: 170)
                 }
+            } label: {
+                panelLabel("Camera Settings", systemImage: "slider.horizontal.3")
             }
 
-            GroupBox("Capture Queue") {
+            GroupBox {
                 List(viewModel.jobs) { job in
                     HStack {
                         stateBadge(for: job.state)
@@ -248,14 +268,25 @@ struct ContentView: View {
                     }
                 }
                 .frame(minHeight: 140)
+            } label: {
+                HStack {
+                    panelLabel("Capture Queue", systemImage: "list.bullet.rectangle")
+                    Spacer()
+                    Button("Clear") {
+                        viewModel.clearJobs()
+                    }
+                    .buttonStyle(.link)
+                    .disabled(viewModel.jobs.isEmpty)
+                }
             }
         }
     }
 
+    /// Branding block with high-level app context and support link.
     private var appHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("gPhoto Studio")
-                .font(.title2.weight(.bold))
+                .font(.system(size: 28, weight: .bold, design: .rounded))
 
             Text("Native macOS GUI for gphoto2 with digiCamControl-style workflow controls.")
                 .font(.caption)
@@ -290,6 +321,33 @@ struct ContentView: View {
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
     }
 
+    /// Lightweight dashboard cards that summarize the current session state.
+    private var overviewStrip: some View {
+        HStack(spacing: 12) {
+            dashboardCard(
+                title: "Camera",
+                value: viewModel.hasSelectedCamera ? "Connected" : "Waiting",
+                detail: viewModel.selectedCameraSummary,
+                tint: viewModel.hasSelectedCamera ? Color.green : Color.orange
+            )
+
+            dashboardCard(
+                title: "Queue",
+                value: "\(viewModel.jobs.count)",
+                detail: "\(viewModel.successfulJobCount) completed",
+                tint: Color.blue
+            )
+
+            dashboardCard(
+                title: "Output",
+                value: outputDirectoryName,
+                detail: viewModel.latestOutputURL?.lastPathComponent ?? "No captures yet",
+                tint: Color.teal
+            )
+        }
+    }
+
+    /// Always-visible footer for low-noise operational status feedback.
     private var statusFooter: some View {
         HStack(spacing: 10) {
             Circle()
@@ -305,6 +363,55 @@ struct ContentView: View {
         .background(.ultraThinMaterial)
     }
 
+    private var outputDirectoryName: String {
+        let expandedPath = NSString(string: viewModel.outputDirectory).expandingTildeInPath
+        let lastPathComponent = URL(fileURLWithPath: expandedPath).lastPathComponent
+        return lastPathComponent.isEmpty ? expandedPath : lastPathComponent
+    }
+
+    /// Shared label styling for panel headers across the app.
+    @ViewBuilder
+    private func panelLabel(_ title: String, systemImage: String) -> some View {
+        Label(title, systemImage: systemImage)
+            .font(.system(.headline, design: .rounded))
+    }
+
+    /// Reusable dashboard tile with a strong numeric/value line and softer context text.
+    @ViewBuilder
+    private func dashboardCard(title: String, value: String, detail: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title.uppercased())
+                .font(.system(.caption2, design: .rounded))
+                .foregroundStyle(.secondary)
+
+            Text(value)
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .foregroundStyle(.primary)
+
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(
+                    LinearGradient(
+                        colors: [tint.opacity(0.16), Color.white.opacity(0.82)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(tint.opacity(0.18), lineWidth: 1)
+        )
+    }
+
+    /// Queue badge used to make job state readable at a glance.
     @ViewBuilder
     private func stateBadge(for state: CaptureJobState) -> some View {
         Text(state.rawValue.capitalized)

@@ -76,9 +76,27 @@ final class AppViewModel: ObservableObject {
         cameras.first(where: { $0.id == selectedCameraID })
     }
 
+    /// Human-readable camera summary used in the dashboard header.
+    var selectedCameraSummary: String {
+        guard let camera = selectedCamera else {
+            return "No camera selected"
+        }
+        return "\(camera.model) • \(camera.port)"
+    }
+
     /// Convenience flag for enabling capture controls.
     var hasSelectedCamera: Bool {
         selectedCamera != nil
+    }
+
+    /// Number of successful queue items still visible in the queue panel.
+    var successfulJobCount: Int {
+        jobs.filter { $0.state == .succeeded }.count
+    }
+
+    /// Last output file saved successfully, if any.
+    var latestOutputURL: URL? {
+        jobs.first(where: { $0.outputURL != nil })?.outputURL
     }
 
     /// Initial load entry point called by the app scene.
@@ -124,7 +142,9 @@ final class AppViewModel: ObservableObject {
         }
 
         selectedCameraID = id
+        settings = []
         resetCameraBoundTasks()
+        statusText = "Loading settings for selected camera..."
         loadCommonSettings()
     }
 
@@ -255,6 +275,12 @@ final class AppViewModel: ObservableObject {
         }
     }
 
+    /// Clears the in-memory queue shown in the capture history panel.
+    func clearJobs() {
+        jobs.removeAll()
+        statusText = "Capture queue cleared."
+    }
+
     /// Toggles preview polling.
     func toggleLiveView() {
         liveViewEnabled ? stopLiveView() : startLiveView()
@@ -282,6 +308,9 @@ final class AppViewModel: ObservableObject {
                     if let image = NSImage(data: data) {
                         livePreviewImage = image
                         consecutiveFailures = 0
+                    } else {
+                        consecutiveFailures += 1
+                        statusText = "Live view returned unreadable preview data."
                     }
                 } catch {
                     consecutiveFailures += 1

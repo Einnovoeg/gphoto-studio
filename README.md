@@ -1,42 +1,39 @@
 # gPhoto Studio
 
-Native macOS desktop GUI for [gphoto2](https://github.com/gphoto/gphoto2), with workflow patterns inspired by [digiCamControl](https://sourceforge.net/projects/digicamcontrol/).
+gPhoto Studio is a native macOS desktop application for controlling cameras through `gphoto2`, with workflow ideas inspired by `digiCamControl`.
 
-## What This Software Does
+## What It Does
 
-gPhoto Studio provides a native SwiftUI interface for common tethered-photography tasks on macOS:
+gPhoto Studio provides a macOS GUI for common tethered photography tasks:
 
-- camera discovery and selection
-- one-click capture and download
-- live preview polling
-- quick camera setting control (ISO, shutter, aperture, and more)
-- preset-driven capture
-- timelapse capture queues
-- tethered event watch with auto-download
+- discover and select connected cameras
+- capture images directly to the Mac
+- preview live frames when the camera supports preview capture
+- inspect and change common camera settings
+- apply quick presets for ISO, shutter speed, and aperture
+- run timelapse sequences
+- watch for tethered camera events and auto-download new files
 
-## Project References
+## Why This Project Exists
 
-- gphoto2 GitHub: [https://github.com/gphoto/gphoto2](https://github.com/gphoto/gphoto2)
-- gphoto.org: [http://www.gphoto.org](http://www.gphoto.org)
-- gPhoto SourceForge files: [https://sourceforge.net/projects/gphoto/files/](https://sourceforge.net/projects/gphoto/files/)
-- digiCamControl SourceForge: [https://sourceforge.net/projects/digicamcontrol/](https://sourceforge.net/projects/digicamcontrol/)
+`gphoto2` is powerful but command-line driven. `digiCamControl` popularized a more accessible desktop workflow, but it is primarily Windows-oriented. gPhoto Studio brings that style of workflow to macOS with a native SwiftUI app while still using `gphoto2` as the device backend.
 
-## Install Requirements
+## Installation
+
+### Option 1: Run From Source
+
+Requirements:
 
 1. macOS 13 or newer
 2. Xcode Command Line Tools
 3. `gphoto2` installed and available in `PATH`
 
-Install tooling:
+Install prerequisites:
 
 ```bash
 xcode-select --install
 brew install gphoto2
 ```
-
-For full dependency details, see [DEPENDENCIES.md](DEPENDENCIES.md).
-
-## Build and Run
 
 Build:
 
@@ -50,15 +47,7 @@ Run:
 swift run GPhotoStudio
 ```
 
-## Testing
-
-Run unit tests:
-
-```bash
-swift test
-```
-
-## Build a macOS `.app`
+### Option 2: Build a Native `.app`
 
 ```bash
 ./scripts/build-macos-app.sh
@@ -68,7 +57,7 @@ Output:
 
 - `dist/gPhoto Studio.app`
 
-## Build Release Artifacts (`.app`, `.zip`, `.dmg`, checksums)
+### Option 3: Build Release Artifacts
 
 ```bash
 ./scripts/build-release-artifacts.sh
@@ -82,21 +71,63 @@ Outputs:
 - `dist/gPhoto Studio-SHA256.txt`
 - `dist/gPhoto Studio-release-manifest.txt`
 
-## Verify Existing Artifacts
+## Testing and Verification
+
+Run unit tests:
+
+```bash
+swift test
+```
+
+Verify packaged artifacts:
 
 ```bash
 ./scripts/verify-release-artifacts.sh
 ```
 
-## License and Credits
+## Dependencies
 
-- Project license: [MIT](LICENSE)
-- Third-party credits and obligations: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+Runtime dependencies:
 
-Important:
+- `gphoto2`
 
-- gPhoto Studio invokes `gphoto2`, which is licensed separately by its upstream authors.
-- If you redistribute packages that include third-party tools, ensure you also satisfy those tools' license requirements.
+Build dependencies:
+
+- Swift 5.9+
+- Xcode Command Line Tools
+- `zip` and `hdiutil` for release packaging
+
+Optional dependency:
+
+- Python 3 with Pillow for generated icon assets
+
+Additional detail is documented in [DEPENDENCIES.md](DEPENDENCIES.md).
+
+## License
+
+This repository's original source code is licensed under the [MIT License](LICENSE).
+
+## Third-Party Credits and Compliance
+
+This project depends on and credits the original upstream authors of the software it builds upon:
+
+- `gphoto2` by Marcus Meissner and the gPhoto contributors
+- `digiCamControl` by Duka Istvan
+
+Important compliance notes:
+
+- gPhoto Studio does not bundle `gphoto2` source code in the repository.
+- gPhoto Studio invokes the separately installed `gphoto2` executable as an external dependency.
+- If you redistribute builds that include third-party software, you must also comply with the upstream licenses of those third-party components.
+
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for credit, attribution, and bundled upstream license texts.
+
+## Upstream References
+
+- `gphoto2` GitHub: [https://github.com/gphoto/gphoto2](https://github.com/gphoto/gphoto2)
+- `gphoto.org`: [http://www.gphoto.org](http://www.gphoto.org)
+- gPhoto SourceForge files: [https://sourceforge.net/projects/gphoto/files/](https://sourceforge.net/projects/gphoto/files/)
+- `digiCamControl` SourceForge: [https://sourceforge.net/projects/digicamcontrol/](https://sourceforge.net/projects/digicamcontrol/)
 
 ## Support
 

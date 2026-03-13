@@ -3,6 +3,7 @@
 
 # Swift Package Manager build artifacts
 .build/
+.swiftpm/
 
 # Xcode user state and temporary files
 DerivedData/
@@ -17,3 +18,10 @@ dist/
 *.swp
 *.swo
 *~
+*.log
+*.tmp
+*.orig
+
+# Editor settings
+.idea/
+.vscode/

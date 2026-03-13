@@ -2,6 +2,7 @@
 
 This project is a native macOS front-end that invokes external camera tooling.
 It does not vendor or redistribute third-party source code by default, but it depends on and is inspired by the projects listed below.
+The license texts included in `licenses/` were copied from the official upstream repositories to keep attribution and redistribution requirements visible inside this project.
 
 ## 1) gphoto2
 
@@ -11,6 +12,7 @@ It does not vendor or redistribute third-party source code by default, but it de
 - Copyright: Marcus Meissner and gPhoto contributors
 - Upstream license: GNU General Public License, Version 2 (GPL-2.0)
 - Local license copy: [licenses/GPL-2.0.txt](licenses/GPL-2.0.txt)
+- Official upstream license source: `gphoto/gphoto2` repository `COPYING` file
 
 Credit note:
 - gPhoto Studio uses the `gphoto2` executable as the camera backend.
@@ -23,6 +25,7 @@ Credit note:
 - Copyright: Duka Istvan
 - Upstream license: MIT License
 - Local license copy: [licenses/digiCamControl-MIT.txt](licenses/digiCamControl-MIT.txt)
+- Official upstream license source: `dukus/digiCamControl` repository `LICENSE` file
 
 Credit note:
 - gPhoto Studio adopts workflow ideas inspired by digiCamControl (preset-driven capture, queue-based status, timelapse/tether patterns).
@@ -39,6 +42,7 @@ Credit note:
 - This repository's own source code is released under the `MIT` license (see [LICENSE](LICENSE)).
 - Third-party tools retain their own licenses and copyright.
 - Keep this notice file when redistributing this project.
+- Give credit to the upstream authors when describing the origin of the camera backend and workflow inspiration.
 
 ## Included MIT Notice (digiCamControl)
 

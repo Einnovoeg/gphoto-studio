@@ -14,5 +14,25 @@ struct GPhotoStudioApp: App {
                     viewModel.bootstrap()
                 }
         }
+        .commands {
+            CommandMenu("Camera") {
+                Button("Refresh Cameras") {
+                    viewModel.refreshCameras()
+                }
+                .keyboardShortcut("r", modifiers: [.command])
+
+                Button("Capture Now") {
+                    viewModel.captureNow()
+                }
+                .keyboardShortcut("c", modifiers: [.command])
+                .disabled(!viewModel.hasSelectedCamera)
+
+                Button(viewModel.liveViewEnabled ? "Stop Live View" : "Start Live View") {
+                    viewModel.toggleLiveView()
+                }
+                .keyboardShortcut("l", modifiers: [.command])
+                .disabled(!viewModel.hasSelectedCamera)
+            }
+        }
     }
 }
